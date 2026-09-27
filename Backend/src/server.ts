@@ -5,7 +5,7 @@ import { createServer } from "node:http";
 import { CreateServer } from "./lib/socket-io.js";
 
 const app = express();
-const PORT = 3000;
+const PORT = Number(process.env.PORT) || 3000;
 
 app.use(cors({ origin: "*" }));
 app.use(express.static("public"));
