@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { socket } from "@/lib/socket-io-client";
+import { ICE_SERVERS } from "@/lib/ice-servers";
 import type { Participant } from "@/hooks/use-room-events";
 
 type SdpPayload = RTCSessionDescriptionInit;
@@ -80,7 +81,7 @@ export function useWebRTC(stream: MediaStream | null) {
       });
 
       const pc = new RTCPeerConnection({
-        iceServers: [{ urls: "stun:stun.l.google.com:19302" }],
+        iceServers: ICE_SERVERS,
       });
       peerConnections.set(peerId, pc);
 
@@ -150,7 +151,12 @@ export function useWebRTC(stream: MediaStream | null) {
       };
 
       pc.onconnectionstatechange = () => {
-        if (pc.connectionState === "failed") closePeer(peerId);
+        if (pc.connectionState === "failed") {
+          // Common without a TURN relay across strict NATs — see
+          // src/lib/ice-servers.ts
+          console.error("Peer connection failed:", peerId);
+          closePeer(peerId);
+        }
       };
 
       return pc;

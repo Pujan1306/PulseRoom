@@ -92,6 +92,29 @@ docker build -f .dockerfile -t streamroom .
 docker run -p 3000:3000 streamroom
 ```
 
+### TURN relay (recommended for production)
+
+WebRTC connects peers directly when possible. STUN alone works on the same
+network, but often fails across strict NATs (symmetric NAT, carrier-grade NAT,
+guest Wi-Fi firewalls) — when it does, media never arrives and viewers are
+stuck on "Waiting for …'s screen…". Adding a TURN relay fixes connectivity:
+
+Set these build-time variables (any TURN provider works, e.g. Cloudflare Calls,
+Twilio NTS, or a self-hosted coturn):
+
+| Variable                 | Description                                        |
+| ------------------------ | -------------------------------------------------- |
+| `VITE_TURN_URLS`         | Comma-separated, e.g. `turn:host:3478?transport=udp` |
+| `VITE_TURN_USERNAME`     | TURN username (optional)                           |
+| `VITE_TURN_CREDENTIAL`   | TURN credential (optional)                         |
+
+Locally, put them in `Frontend/.env.local`. In Docker they flow through the
+`ARG VITE_*` declarations in `.dockerfile` — on Render, set the same names as
+environment variables and they're passed to the build automatically.
+
+> These values are baked into the client bundle and visible to anyone who
+> inspects it — prefer a provider with ephemeral, credential-scoped access.
+
 ## Scripts
 
 ### Backend (`/Backend`)
